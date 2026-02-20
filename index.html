@@ -103,11 +103,13 @@ hr{margin:18px 0;opacity:.2}
 <div class="topbar">
   <h2 id="ui_title">Taya Navi v3.4</h2>
   <div class="controls">
-    <select id="lang">
-      <option value="en" selected>English</option>
-      <option value="ja">日本語</option>
-      <option value="zh">中文</option>
-    </select>
+    <select id="lang" onchange="applyLanguage()">
+  <option value="en" selected>English</option>
+  <option value="ja">日本語</option>
+  <option value="zh_cn">中文 (简体)</option>
+  <option value="zh_tw">中文 (繁體)</option>
+  <option value="mn">Монгол</option>
+</select>
     <div class="toggle" onclick="toggleTheme()">🌙 / ☀</div>
   </div>
 </div>
@@ -164,6 +166,89 @@ const LS_KEY="tayaHistory_v34";
 let keywordGroups=[];
 let generatedURL="";
 
+const LANG = {
+  en:{
+    company:"Company Names",
+    mode:"Mode",
+    past:"Former only (exclude current)",
+    current:"Current only",
+    both:"Both (Current + Past)",
+    add:"+ Add Keyword Group (AND)",
+    generate:"Generate",
+    open:"Open",
+    copy:"Copy",
+    clear:"Clear All",
+    history:"Recent Searches",
+    clearHistory:"Clear History",
+    confirmClear:"Are you sure you want to clear all inputs?",
+    confirmHistory:"Clear all history?"
+  },
+  ja:{
+    company:"会社名",
+    mode:"モード",
+    past:"過去のみ（現在を除外）",
+    current:"現在のみ",
+    both:"現在＋過去",
+    add:"+ キーワードグループ追加 (AND)",
+    generate:"生成",
+    open:"開く",
+    copy:"コピー",
+    clear:"すべてクリア",
+    history:"最近の検索",
+    clearHistory:"履歴を削除",
+    confirmClear:"入力内容をすべてクリアしますか？",
+    confirmHistory:"履歴をすべて削除しますか？"
+  },
+  zh_cn:{
+    company:"公司名称",
+    mode:"模式",
+    past:"仅过去（排除当前）",
+    current:"仅当前",
+    both:"当前 + 过去",
+    add:"+ 添加关键词组 (AND)",
+    generate:"生成",
+    open:"打开",
+    copy:"复制",
+    clear:"清空全部",
+    history:"最近搜索",
+    clearHistory:"清空历史",
+    confirmClear:"确定要清空所有输入内容吗？",
+    confirmHistory:"确定要清空历史记录吗？"
+  },
+  zh_tw:{
+    company:"公司名稱",
+    mode:"模式",
+    past:"僅過去（排除當前）",
+    current:"僅當前",
+    both:"當前 + 過去",
+    add:"+ 新增關鍵字群組 (AND)",
+    generate:"產生",
+    open:"開啟",
+    copy:"複製",
+    clear:"全部清除",
+    history:"最近搜尋",
+    clearHistory:"清除歷史",
+    confirmClear:"確定要清空所有輸入內容嗎？",
+    confirmHistory:"確定要清空歷史紀錄嗎？"
+  },
+  mn:{
+    company:"Компанийн нэр",
+    mode:"Горим",
+    past:"Зөвхөн өмнөх",
+    current:"Зөвхөн одоогийн",
+    both:"Одоогийн + Өмнөх",
+    add:"+ Түлхүүр үг нэмэх",
+    generate:"Үүсгэх",
+    open:"Нээх",
+    copy:"Хуулах",
+    clear:"Бүгдийг цэвэрлэх",
+    history:"Сүүлийн хайлтууд",
+    clearHistory:"Түүх устгах",
+    confirmClear:"Бүх оруулсан мэдээллийг устгах уу?",
+    confirmHistory:"Бүх түүхийг устгах уу?"
+  }
+};
+  
 function uniq(arr){return [...new Set(arr.map(x=>x.trim()).filter(Boolean))];}
 
 function encForKeywords(raw){
@@ -318,8 +403,27 @@ function clearHistory(){
 
 function toggleTheme(){document.body.classList.toggle("light");}
 
+function applyLanguage(){
+  const lang=document.getElementById("lang").value;
+  const t=LANG[lang]||LANG.en;
+
+  document.getElementById("ui_company_label").innerText=t.company;
+  document.getElementById("ui_mode_label").innerText=t.mode;
+  document.getElementById("ui_mode_past").innerText=t.past;
+  document.getElementById("ui_mode_current").innerText=t.current;
+  document.getElementById("ui_mode_both").innerText=t.both;
+  document.getElementById("ui_add_group").innerText=t.add;
+  document.getElementById("ui_btn_generate").innerText=t.generate;
+  document.getElementById("ui_btn_open").innerText=t.open;
+  document.getElementById("ui_btn_copy").innerText=t.copy;
+  document.getElementById("ui_btn_clear").innerText=t.clear;
+  document.getElementById("ui_history_title").innerText=t.history;
+  document.getElementById("ui_clear_history").innerText=t.clearHistory;
+}
+  
 addKeywordGroup("");
 renderHistory();
+applyLanguage();
 
 </script>
 </body>

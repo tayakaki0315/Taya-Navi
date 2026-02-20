@@ -6,27 +6,46 @@
 <title>Taya Navi</title>
 
 <style>
+:root{
+  --bg:#0f1117;
+  --card:#171a23;
+  --text:#eaeef3;
+  --border:#2a2f3c;
+  --button:#202636;
+  --primary:#2f5eff;
+}
+
+.light{
+  --bg:#f4f6fb;
+  --card:#ffffff;
+  --text:#111;
+  --border:#d0d6e2;
+  --button:#e7ebf3;
+  --primary:#2f5eff;
+}
+
 body{
-  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-  background:#0f1117;
-  color:#eaeef3;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
   margin:0;
   padding:30px;
+  transition:.25s;
 }
 h1{margin:0 0 6px 0}
-small{color:#9aa3b2}
+small{opacity:.7}
 .container{max-width:1100px;margin:auto}
 .card{
-  background:#171a23;
+  background:var(--card);
   padding:20px;
   border-radius:14px;
   margin-bottom:20px;
 }
 textarea,input,select{
   width:100%;
-  background:#0f1117;
-  color:#eaeef3;
-  border:1px solid #2a2f3c;
+  background:var(--bg);
+  color:var(--text);
+  border:1px solid var(--border);
   border-radius:10px;
   padding:10px;
   margin-top:6px;
@@ -35,35 +54,57 @@ textarea,input,select{
 button{
   padding:10px 14px;
   border-radius:10px;
-  border:1px solid #2a2f3c;
-  background:#202636;
-  color:white;
+  border:1px solid var(--border);
+  background:var(--button);
+  color:var(--text);
   cursor:pointer;
   margin-right:10px;
 }
 button.primary{
-  background:#2f5eff;
+  background:var(--primary);
   border:none;
+  color:white;
 }
 .row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .status{margin-top:12px;font-size:13px}
-.good{color:#7ef0c1}
-.warn{color:#ffcc66}
-.bad{color:#ff6b6b}
-.output{min-height:160px}
+.good{color:#4cd7a6}
+.footer{
+  margin-top:40px;
+  text-align:center;
+  font-size:12px;
+  opacity:.4;
+}
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
+}
+.toggle{
+  cursor:pointer;
+  font-size:14px;
+  opacity:.7;
+}
 </style>
 </head>
 
 <body>
 <div class="container">
 
-<h1>Taya Navi v2.1</h1>
-<small>Paste company names (any delimiter). Former mode auto-excludes current employees.</small>
+<div class="topbar">
+<div>
+<h1>Taya Navi v2.2</h1>
+<small>Sales Navigator URL Engine</small>
+</div>
+<div class="toggle" onclick="toggleTheme()">🌙 / ☀</div>
+</div>
 
 <div class="card">
 <label><b>Company Names</b></label>
-<textarea id="companies" placeholder="Example:
-Takasago, T. Hasegawa / IFF；ADM・DSM Firmenich"></textarea>
+<textarea id="companies" placeholder="Sunpower, Ricor Systems / Eaton・Cryomech"></textarea>
+
+<label><b>Keywords (Optional)</b></label>
+<textarea id="keywords" placeholder="購買, Sales / 営業"></textarea>
 
 <div class="row">
 <div>
@@ -98,23 +139,28 @@ Takasago, T. Hasegawa / IFF；ADM・DSM Firmenich"></textarea>
 
 <div class="card">
 <label><b>Generated URL</b></label>
-<textarea id="output" class="output" readonly></textarea>
+<textarea id="output" readonly style="min-height:150px;"></textarea>
 
-<label><b>Expanded Keywords</b></label>
-<textarea id="expanded" class="output" readonly></textarea>
+<label><b>Expanded Companies</b></label>
+<textarea id="expanded" readonly style="min-height:120px;"></textarea>
+
+<label><b>Formatted Keywords</b></label>
+<textarea id="expandedKeywords" readonly style="min-height:80px;"></textarea>
+</div>
+
+<div class="footer">
+Taya Navi v2.2 – Keyword Engine Added – 2026.02.20
 </div>
 
 </div>
 
 <script>
 
-// ===== Multi-delimiter split =====
-const SPLIT_REGEX = /[\r\n,，、:：・\/\\;；]+/g;
+const SPLIT_REGEX=/[\r\n,，、:：・\/\\;；]+/g;
 
-// ===== Global suffix removal =====
-const JP_SUFFIXES = ["株式会社","有限会社","合同会社","合資会社","合名会社","（株）","（有）","㈱","㈲"];
+const JP_SUFFIXES=["株式会社","有限会社","合同会社","合資会社","合名会社","（株）","（有）","㈱","㈲"];
 
-const EN_SUFFIX_PATTERNS = [
+const EN_SUFFIX_PATTERNS=[
 /\bco\.\s*ltd\.?$/i,
 /\bltd\.?$/i,
 /\blimited$/i,
@@ -136,9 +182,9 @@ const EN_SUFFIX_PATTERNS = [
 ];
 
 function stripSuffix(name){
-  let s = name.trim();
-  JP_SUFFIXES.forEach(j=>{ if(s.endsWith(j)) s=s.replace(j,"").trim(); });
-  EN_SUFFIX_PATTERNS.forEach(re=>{ s=s.replace(re,"").trim(); });
+  let s=name.trim();
+  JP_SUFFIXES.forEach(j=>{if(s.endsWith(j))s=s.replace(j,"").trim();});
+  EN_SUFFIX_PATTERNS.forEach(re=>{s=s.replace(re,"").trim();});
   return s;
 }
 
@@ -147,55 +193,70 @@ function uniq(arr){
 }
 
 function encodeCompany(name){
-  const once = encodeURIComponent(name);
-  return once.replace(/%/g,"%25");
+  return encodeURIComponent(name).replace(/%/g,"%25");
+}
+
+function formatKeywords(raw){
+  if(!raw.trim()) return "";
+  let list=uniq(raw.split(SPLIT_REGEX));
+  let formatted=list.map(k=>{
+    if(/[\u4e00-\u9fff]/.test(k)){
+      return "“"+k+"”";
+    }else{
+      return "\""+k+"\"";
+    }
+  });
+  return formatted.join(" OR ");
+}
+
+function encodeKeywords(str){
+  return encodeURIComponent(str).replace(/%/g,"%25");
 }
 
 function build(){
-  const input = document.getElementById("companies").value;
-  const mode = document.getElementById("mode").value;
+  let companiesInput=document.getElementById("companies").value;
+  let keywordInput=document.getElementById("keywords").value;
+  let mode=document.getElementById("mode").value;
 
-  let names = input.split(SPLIT_REGEX);
-  let expanded = [];
-
+  let names=uniq(companiesInput.split(SPLIT_REGEX));
+  let expanded=[];
   names.forEach(n=>{
     expanded.push(n);
     expanded.push(stripSuffix(n));
   });
+  expanded=uniq(expanded);
 
-  expanded = uniq(expanded);
-
-  document.getElementById("expanded").value = expanded.join("\n");
+  document.getElementById("expanded").value=expanded.join("\n");
 
   function values(list,type){
     return list.map(n=>`(text%3A${encodeCompany(n)}%2CselectionType%3A${type})`).join("%2C");
   }
 
-  let query="";
-
+  let filters="";
   if(mode==="PAST"){
-    query=`(recentSearchParam%3A(doLogHistory%3Atrue)%2Cfilters%3AList(
-(type%3APAST_COMPANY%2Cvalues%3AList(${values(expanded,"INCLUDED")}))%2C
-(type%3ACURRENT_COMPANY%2Cvalues%3AList(${values(expanded,"EXCLUDED")}))
-))`;
+    filters=`(type%3APAST_COMPANY%2Cvalues%3AList(${values(expanded,"INCLUDED")}))%2C(type%3ACURRENT_COMPANY%2Cvalues%3AList(${values(expanded,"EXCLUDED")}))`;
   }
   else if(mode==="CURRENT"){
-    query=`(recentSearchParam%3A(doLogHistory%3Atrue)%2Cfilters%3AList(
-(type%3ACURRENT_COMPANY%2Cvalues%3AList(${values(expanded,"INCLUDED")}))
-))`;
+    filters=`(type%3ACURRENT_COMPANY%2Cvalues%3AList(${values(expanded,"INCLUDED")}))`;
   }
   else{
-    query=`(recentSearchParam%3A(doLogHistory%3Atrue)%2Cfilters%3AList(
-(type%3APAST_COMPANY%2Cvalues%3AList(${values(expanded,"INCLUDED")}))%2C
-(type%3ACURRENT_COMPANY%2Cvalues%3AList(${values(expanded,"INCLUDED")}))
-))`;
+    filters=`(type%3APAST_COMPANY%2Cvalues%3AList(${values(expanded,"INCLUDED")}))%2C(type%3ACURRENT_COMPANY%2Cvalues%3AList(${values(expanded,"INCLUDED")}))`;
   }
 
-  const url=`https://www.linkedin.com/sales/search/people?query=${query}&viewAllFilters=true`;
-  document.getElementById("output").value=url;
+  let keywordBlock="";
+  let formattedKeywords=formatKeywords(keywordInput);
+  document.getElementById("expandedKeywords").value=formattedKeywords;
 
-  document.getElementById("status").innerHTML=
-    `<span class="good">Done. ${expanded.length} keywords generated.</span>`;
+  if(formattedKeywords){
+    keywordBlock=`%2Ckeywords%3A${encodeKeywords(formattedKeywords)}`;
+  }
+
+  let query=`(spellCorrectionEnabled%3Atrue%2CrecentSearchParam%3A(doLogHistory%3Atrue)%2Cfilters%3AList(${filters})${keywordBlock})`;
+
+  let url=`https://www.linkedin.com/sales/search/people?query=${query}&viewAllFilters=true`;
+
+  document.getElementById("output").value=url;
+  document.getElementById("status").innerHTML="<span class='good'>URL Generated Successfully</span>";
 }
 
 function copyURL(){
@@ -204,6 +265,10 @@ function copyURL(){
 
 function openURL(){
   window.open(document.getElementById("output").value,"_blank");
+}
+
+function toggleTheme(){
+  document.body.classList.toggle("light");
 }
 
 </script>

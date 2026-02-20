@@ -12,8 +12,8 @@
   --card:#171a23;
   --text:#eaeef3;
   --border:#2a2f3c;
-  --blue:#2f5eff;
-  --green:#1bb76e;
+  --green:#1bb76e; /* Generate */
+  --blue:#2f5eff;  /* Open */
 }
 .light{
   --bg:#f4f6fb;
@@ -22,7 +22,7 @@
   --border:#d0d6e2;
 }
 body{
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;
   background:var(--bg);
   color:var(--text);
   margin:0;
@@ -51,9 +51,9 @@ button{
   cursor:pointer;
   margin-right:8px;
 }
-.generate{background:var(--blue);color:white;border:none;}
-.open{background:var(--green);color:white;border:none;}
-.copy{background:transparent;color:var(--text);}
+.btn-generate{background:var(--green);color:white;border:none;}
+.btn-open{background:var(--blue);color:white;border:none;}
+.btn-copy{background:transparent;color:var(--text);}
 .group{
   margin-bottom:15px;
   position:relative;
@@ -64,10 +64,10 @@ button{
   top:0;
   font-size:12px;
   cursor:pointer;
-  opacity:.6;
+  opacity:.65;
 }
 .footer{
-  margin-top:40px;
+  margin-top:30px;
   font-size:11px;
   opacity:.35;
   word-break:break-all;
@@ -75,68 +75,195 @@ button{
 .history-item{
   font-size:12px;
   border:1px solid var(--border);
-  padding:6px;
-  border-radius:6px;
-  margin-bottom:6px;
+  padding:8px;
+  border-radius:8px;
+  margin-bottom:8px;
 }
-.toggle{cursor:pointer;opacity:.6;}
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+}
+.controls{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+.toggle{cursor:pointer;opacity:.7;}
+.small{font-size:12px;opacity:.65;margin-top:6px}
+hr{margin:18px 0;opacity:.2}
 </style>
 </head>
 
 <body>
 <div class="container">
 
-<div style="display:flex;justify-content:space-between;">
-<h2>Taya Navi v3.2</h2>
-<div class="toggle" onclick="toggleTheme()">🌙 / ☀</div>
-</div>
+  <div class="topbar">
+    <h2 id="ui_title">Taya Navi v3.3</h2>
+    <div class="controls">
+      <select id="lang" aria-label="Language">
+        <option value="en" selected>English</option>
+        <option value="ja">日本語</option>
+        <option value="zh">中文</option>
+      </select>
+      <div class="toggle" id="ui_theme" onclick="toggleTheme()">🌙 / ☀</div>
+    </div>
+  </div>
 
-<div class="card">
-<label><b>Company Names</b></label>
-<textarea id="companies"></textarea>
+  <div class="card">
+    <label><b id="ui_company_label">Company Names</b></label>
+    <textarea id="companies" placeholder="Sunpower, Eaton / Ricor Systems"></textarea>
+    <div class="small" id="ui_company_hint">
+      Delimiters supported: comma, Japanese '、', middle dot '・', slash '/', colon ':', semicolon ';', newline.
+    </div>
 
-<label><b>Mode</b></label>
-<select id="mode">
-<option value="PAST">Former only (exclude current)</option>
-<option value="CURRENT">Current only</option>
-<option value="BOTH">Both (Current + Past)</option>
-</select>
+    <label style="margin-top:14px;"><b id="ui_mode_label">Mode</b></label>
+    <select id="mode">
+      <option value="PAST" id="ui_mode_past">Former only (exclude current)</option>
+      <option value="CURRENT" id="ui_mode_current">Current only</option>
+      <option value="BOTH" id="ui_mode_both">Both (Current + Past)</option>
+    </select>
 
-<hr style="margin:20px 0;opacity:.2">
+    <hr>
 
-<div id="keywordContainer"></div>
-<button onclick="addKeywordGroup()">+ Add Keyword Group (AND)</button>
+    <div id="keywordContainer"></div>
+    <button id="ui_add_group" onclick="addKeywordGroup()">+ Add Keyword Group (AND)</button>
+    <div class="small" id="ui_kw_hint">
+      Inside each group: OR. Between groups: AND. Example: (A OR B) AND (C OR D)
+    </div>
 
-<br><br>
+    <br><br>
 
-<button class="generate" onclick="generate()">Generate</button>
-<button class="open" onclick="openURL()">Open</button>
-<button class="copy" onclick="copyURL()">Copy</button>
-</div>
+    <button class="btn-generate" id="ui_btn_generate" onclick="generate()">Generate</button>
+    <button class="btn-open" id="ui_btn_open" onclick="openURL()">Open</button>
+    <button class="btn-copy" id="ui_btn_copy" onclick="copyURL()">Copy</button>
+  </div>
 
-<div class="card">
-<h3>Expanded Companies</h3>
-<textarea id="expandedCompanies" readonly></textarea>
+  <div class="card">
+    <h3 id="ui_exp_companies">Expanded Companies</h3>
+    <textarea id="expandedCompanies" readonly></textarea>
 
-<h3>Expanded Keywords</h3>
-<textarea id="expandedKeywords" readonly></textarea>
-</div>
+    <h3 id="ui_exp_keywords" style="margin-top:14px;">Expanded Keywords</h3>
+    <textarea id="expandedKeywords" readonly></textarea>
+  </div>
 
-<div class="card">
-<h3>Recent Searches</h3>
-<div id="historyList"></div>
-<button onclick="clearHistory()">Clear All</button>
-</div>
+  <div class="card">
+    <h3 id="ui_history_title">Recent Searches</h3>
+    <div id="historyList"></div>
+    <button id="ui_clear_history" onclick="clearHistory()">Clear All</button>
+  </div>
 
-<div class="footer" id="urlFooter"></div>
+  <div class="footer" id="urlFooter"></div>
 
 </div>
 
 <script>
+/* ========= i18n ========= */
+const i18n = {
+  en: {
+    title: "Taya Navi v3.3",
+    companyLabel: "Company Names",
+    companyHint: "Delimiters supported: comma, Japanese '、', middle dot '・', slash '/', colon ':', semicolon ';', newline.",
+    modeLabel: "Mode",
+    modePast: "Former only (exclude current)",
+    modeCurrent: "Current only",
+    modeBoth: "Both (Current + Past)",
+    addGroup: "+ Add Keyword Group (AND)",
+    kwHint: "Inside each group: OR. Between groups: AND. Example: (A OR B) AND (C OR D)",
+    btnGenerate: "Generate",
+    btnOpen: "Open",
+    btnCopy: "Copy",
+    expCompanies: "Expanded Companies",
+    expKeywords: "Expanded Keywords",
+    historyTitle: "Recent Searches",
+    clearAll: "Clear All",
+    remove: "Remove",
+    kwGroup: (n)=>`Keyword Group (${n})`,
+    placeholderCompany: "Sunpower, Eaton / Ricor Systems",
+    placeholderKw: "購買, Sales / procurement"
+  },
+  ja: {
+    title: "Taya Navi v3.3",
+    companyLabel: "会社名",
+    companyHint: "区切り文字: , / 、 / ・ / / / : / ; / 改行（どれでもOK）",
+    modeLabel: "モード",
+    modePast: "前職のみ（現職を除外）",
+    modeCurrent: "現職のみ",
+    modeBoth: "現職 + 前職",
+    addGroup: "+ キーワードグループを追加（AND）",
+    kwHint: "同一グループ内は OR、グループ間は AND です。（A OR B）AND（C OR D）",
+    btnGenerate: "生成",
+    btnOpen: "開く",
+    btnCopy: "コピー",
+    expCompanies: "展開後の会社名",
+    expKeywords: "展開後のキーワード",
+    historyTitle: "履歴（最近）",
+    clearAll: "全て削除",
+    remove: "削除",
+    kwGroup: (n)=>`キーワードグループ（${n}）`,
+    placeholderCompany: "例）Sunpower、Eaton / Ricor Systems",
+    placeholderKw: "例）購買、Sales / 調達"
+  },
+  zh: {
+    title: "Taya Navi v3.3",
+    companyLabel: "公司名",
+    companyHint: "支持分隔符：逗号、顿号“、”、中点“・”、斜杠“/”、冒号“:”、分号“;”、换行。",
+    modeLabel: "模式",
+    modePast: "仅前公司（排除仍在职）",
+    modeCurrent: "仅现公司",
+    modeBoth: "现公司 + 前公司",
+    addGroup: "+ 添加关键词组（AND）",
+    kwHint: "同一组内是 OR，不同组之间是 AND。例如：(A OR B) AND (C OR D)",
+    btnGenerate: "生成",
+    btnOpen: "打开",
+    btnCopy: "复制",
+    expCompanies: "解析后的公司名",
+    expKeywords: "解析后的关键词",
+    historyTitle: "最近记录",
+    clearAll: "全部清空",
+    remove: "删除",
+    kwGroup: (n)=>`关键词组（${n}）`,
+    placeholderCompany: "例：Sunpower、Eaton / Ricor Systems",
+    placeholderKw: "例：購買, Sales / procurement"
+  }
+};
 
-const SPLIT_REGEX=/[\r\n,，、:：・\/\\;；]+/g;
+function applyLang(lang){
+  const t = i18n[lang] || i18n.en;
+  document.getElementById("ui_title").innerText = t.title;
+  document.getElementById("ui_company_label").innerText = t.companyLabel;
+  document.getElementById("ui_company_hint").innerText = t.companyHint;
+  document.getElementById("ui_mode_label").innerText = t.modeLabel;
+  document.getElementById("ui_mode_past").innerText = t.modePast;
+  document.getElementById("ui_mode_current").innerText = t.modeCurrent;
+  document.getElementById("ui_mode_both").innerText = t.modeBoth;
+  document.getElementById("ui_add_group").innerText = t.addGroup;
+  document.getElementById("ui_kw_hint").innerText = t.kwHint;
+  document.getElementById("ui_btn_generate").innerText = t.btnGenerate;
+  document.getElementById("ui_btn_open").innerText = t.btnOpen;
+  document.getElementById("ui_btn_copy").innerText = t.btnCopy;
+  document.getElementById("ui_exp_companies").innerText = t.expCompanies;
+  document.getElementById("ui_exp_keywords").innerText = t.expKeywords;
+  document.getElementById("ui_history_title").innerText = t.historyTitle;
+  document.getElementById("ui_clear_history").innerText = t.clearAll;
+
+  document.getElementById("companies").placeholder = t.placeholderCompany;
+
+  // refresh group labels/buttons/placeholders
+  renumberGroups();
+  keywordGroups.forEach(id=>{
+    const ta = document.getElementById(id);
+    if (ta) ta.placeholder = t.placeholderKw;
+  });
+}
+
+/* ========= Core ========= */
+const SPLIT_REGEX=/[\r\n,，、。:：・\/\\;；]+/g; // includes Chinese full stop for convenience
 const MAX_GROUPS=4;
 const MAX_HISTORY=10;
+const LS_KEY="tayaHistory_v33";
+const LS_LANG="tayaLang_v33";
 
 let keywordGroups=[];
 let generatedURL="";
@@ -145,189 +272,224 @@ function uniq(arr){
   return [...new Set(arr.map(x=>x.trim()).filter(Boolean))];
 }
 
-function encodeCompany(name){
-  return encodeURIComponent(name).replace(/%/g,"%25");
+// NOTE: LinkedIn wants double-encoding and ALSO parentheses encoded.
+// encodeURIComponent does NOT encode '(' ')' by default => we fix it.
+function encForKeywords(raw){
+  // 1) encodeURIComponent (unicode -> %E3... etc)
+  // 2) force-encode parentheses
+  // 3) double-encode by turning % -> %25
+  const once = encodeURIComponent(raw)
+    .replace(/\(/g, "%28")
+    .replace(/\)/g, "%29");
+  return once.replace(/%/g, "%25");
 }
 
-function encodeKeywords(str){
-  return encodeURIComponent(str).replace(/%/g,"%25");
+function encForCompany(raw){
+  // company values live inside query(...) too; double-encode only is enough
+  const once = encodeURIComponent(raw);
+  return once.replace(/%/g, "%25");
 }
 
 function formatGroup(raw){
-  let list=uniq(raw.split(SPLIT_REGEX));
+  const list = uniq((raw||"").split(SPLIT_REGEX));
   if(!list.length) return "";
-  let formatted=list.map(k=>{
-    if(/[\u4e00-\u9fff]/.test(k)){
-      return "“"+k+"”";
-    }else{
-      return "\""+k+"\"";
-    }
-  });
-  return formatted.join(" OR ");
+
+  return list.map(k=>{
+    // Chinese/Japanese/Korean chars -> use curly quotes like your example
+    if(/[\u4e00-\u9fff]/.test(k)) return `“${k}”`;
+    return `"${k}"`;
+  }).join(" OR ");
+}
+
+function buildFilters(names, mode){
+  function values(list, type){
+    return list.map(n=>`(text%3A${encForCompany(n)}%2CselectionType%3A${type})`).join("%2C");
+  }
+  if(mode==="PAST"){
+    return `(type%3APAST_COMPANY%2Cvalues%3AList(${values(names,"INCLUDED")}))%2C(type%3ACURRENT_COMPANY%2Cvalues%3AList(${values(names,"EXCLUDED")}))`;
+  }
+  if(mode==="CURRENT"){
+    return `(type%3ACURRENT_COMPANY%2Cvalues%3AList(${values(names,"INCLUDED")}))`;
+  }
+  return `(type%3APAST_COMPANY%2Cvalues%3AList(${values(names,"INCLUDED")}))%2C(type%3ACURRENT_COMPANY%2Cvalues%3AList(${values(names,"INCLUDED")}))`;
 }
 
 function generate(){
+  const companies=document.getElementById("companies").value;
+  const mode=document.getElementById("mode").value;
 
-  let companies=document.getElementById("companies").value;
-  let mode=document.getElementById("mode").value;
-  let names=uniq(companies.split(SPLIT_REGEX));
+  const names = uniq((companies||"").split(SPLIT_REGEX));
+  document.getElementById("expandedCompanies").value = names.join("\n");
 
-  document.getElementById("expandedCompanies").value=names.join("\n");
+  const filters = buildFilters(names, mode);
 
-  function values(list,type){
-    return list.map(n=>`(text%3A${encodeCompany(n)}%2CselectionType%3A${type})`).join("%2C");
-  }
+  // Build keyword boolean: (g1) AND (g2) ...
+  const groupsFormatted = keywordGroups
+    .map(id => formatGroup(document.getElementById(id)?.value || ""))
+    .filter(Boolean);
 
-  let filters="";
-  if(mode==="PAST"){
-    filters=`(type%3APAST_COMPANY%2Cvalues%3AList(${values(names,"INCLUDED")}))%2C(type%3ACURRENT_COMPANY%2Cvalues%3AList(${values(names,"EXCLUDED")}))`;
-  }
-  else if(mode==="CURRENT"){
-    filters=`(type%3ACURRENT_COMPANY%2Cvalues%3AList(${values(names,"INCLUDED")}))`;
-  }
-  else{
-    filters=`(type%3APAST_COMPANY%2Cvalues%3AList(${values(names,"INCLUDED")}))%2C(type%3ACURRENT_COMPANY%2Cvalues%3AList(${values(names,"INCLUDED")}))`;
-  }
+  const keywordString = groupsFormatted.map(g => `(${g})`).join(" AND ");
+  document.getElementById("expandedKeywords").value = keywordString;
 
-  let keywordString="";
-  keywordGroups.forEach(id=>{
-    let val=document.getElementById(id).value;
-    let formatted=formatGroup(val);
-    if(formatted){
-      if(keywordString===""){
-        keywordString=formatted;
-      }else{
-        keywordString=`(${keywordString}) AND (${formatted})`;
-      }
-    }
-  });
+  const keywordBlock = keywordString ? `%2Ckeywords%3A${encForKeywords(keywordString)}` : "";
 
-  document.getElementById("expandedKeywords").value=keywordString;
+  const query = `(spellCorrectionEnabled%3Atrue%2CrecentSearchParam%3A(doLogHistory%3Atrue)%2Cfilters%3AList(${filters})${keywordBlock})`;
+  generatedURL = `https://www.linkedin.com/sales/search/people?query=${query}&viewAllFilters=true`;
 
-  let keywordBlock="";
-  if(keywordString){
-    keywordBlock=`%2Ckeywords%3A${encodeKeywords(keywordString)}`;
-  }
-
-  let query=`(spellCorrectionEnabled%3Atrue%2CrecentSearchParam%3A(doLogHistory%3Atrue)%2Cfilters%3AList(${filters})${keywordBlock})`;
-
-  generatedURL=`https://www.linkedin.com/sales/search/people?query=${query}&viewAllFilters=true`;
-
-  document.getElementById("urlFooter").innerText=generatedURL;
+  document.getElementById("urlFooter").innerText = generatedURL;
 
   saveHistory();
 }
 
 function copyURL(){
-  if(generatedURL)
-    navigator.clipboard.writeText(generatedURL);
+  if(generatedURL) navigator.clipboard.writeText(generatedURL);
 }
 
 function openURL(){
-  if(generatedURL)
-    window.open(generatedURL,"_blank");
+  if(generatedURL) window.open(generatedURL,"_blank","noopener,noreferrer");
 }
 
-function addKeywordGroup(){
+/* ========= Keyword groups ========= */
+function addKeywordGroup(value=""){
   if(keywordGroups.length>=MAX_GROUPS) return;
 
-  let id="kw"+Date.now();
+  const id = "kw" + Date.now() + Math.floor(Math.random()*1000);
   keywordGroups.push(id);
 
-  let div=document.createElement("div");
+  const div=document.createElement("div");
   div.className="group";
   div.innerHTML=`
-  <label><b>Keyword Group (${keywordGroups.length})</b></label>
-  <span class="remove-btn" onclick="removeGroup('${id}')">Remove</span>
-  <textarea id="${id}"></textarea>
+    <label><b class="kw-label"></b></label>
+    <span class="remove-btn" onclick="removeGroup('${id}')"></span>
+    <textarea id="${id}"></textarea>
   `;
   document.getElementById("keywordContainer").appendChild(div);
+
+  const ta = document.getElementById(id);
+  ta.value = value;
+
+  applyLang(document.getElementById("lang").value);
 }
 
 function removeGroup(id){
-  keywordGroups=keywordGroups.filter(g=>g!==id);
-  document.getElementById(id).parentElement.remove();
+  keywordGroups = keywordGroups.filter(x=>x!==id);
+  const ta = document.getElementById(id);
+  if(ta && ta.parentElement) ta.parentElement.remove();
   renumberGroups();
 }
 
 function renumberGroups(){
-  let groups=document.querySelectorAll(".group label b");
-  groups.forEach((el,index)=>{
-    el.innerText=`Keyword Group (${index+1})`;
+  const lang = document.getElementById("lang").value;
+  const t = i18n[lang] || i18n.en;
+
+  const groups = document.querySelectorAll("#keywordContainer .group");
+  groups.forEach((g, idx)=>{
+    const label = g.querySelector(".kw-label");
+    const rm = g.querySelector(".remove-btn");
+    if(label) label.innerText = t.kwGroup(idx+1);
+    if(rm) rm.innerText = t.remove;
   });
 }
 
+/* ========= History ========= */
 function saveHistory(){
   if(!generatedURL) return;
 
-  let history=JSON.parse(localStorage.getItem("tayaHistory")||"[]");
-
+  const history = JSON.parse(localStorage.getItem(LS_KEY) || "[]");
   history.unshift({
-    companies:document.getElementById("companies").value,
-    mode:document.getElementById("mode").value,
-    keywords:keywordGroups.map(id=>document.getElementById(id).value),
-    url:generatedURL,
-    time:new Date().toLocaleString()
+    companies: document.getElementById("companies").value,
+    mode: document.getElementById("mode").value,
+    keywords: keywordGroups.map(id => document.getElementById(id)?.value || ""),
+    url: generatedURL,
+    time: new Date().toLocaleString()
   });
 
-  history=history.slice(0,MAX_HISTORY);
-  localStorage.setItem("tayaHistory",JSON.stringify(history));
+  const trimmed = history.slice(0, MAX_HISTORY);
+  localStorage.setItem(LS_KEY, JSON.stringify(trimmed));
   renderHistory();
 }
 
 function renderHistory(){
-  let history=JSON.parse(localStorage.getItem("tayaHistory")||"[]");
-  let container=document.getElementById("historyList");
-  container.innerHTML="";
+  const history = JSON.parse(localStorage.getItem(LS_KEY) || "[]");
+  const container = document.getElementById("historyList");
+  container.innerHTML = "";
 
-  history.forEach((item,index)=>{
-    let div=document.createElement("div");
+  const lang = document.getElementById("lang").value;
+  const t = i18n[lang] || i18n.en;
+
+  history.forEach((item, idx)=>{
+    const div = document.createElement("div");
     div.className="history-item";
-    div.innerHTML=`<b>${item.time}</b><br>${item.companies}<br>
-    <button onclick="loadHistory(${index})">Load</button>
-    <button onclick="deleteHistory(${index})">Delete</button>`;
+    div.innerHTML = `
+      <b>${item.time}</b><br>
+      <div style="opacity:.75; margin-top:4px; white-space:pre-wrap;">${escapeHtml(item.companies)}</div>
+      <div style="margin-top:8px;">
+        <button onclick="loadHistory(${idx})">${lang==="ja" ? "読み込み" : lang==="zh" ? "载入" : "Load"}</button>
+        <button onclick="deleteHistory(${idx})">${lang==="ja" ? "削除" : lang==="zh" ? "删除" : "Delete"}</button>
+      </div>
+    `;
     container.appendChild(div);
   });
 }
 
-function loadHistory(index){
-  let history=JSON.parse(localStorage.getItem("tayaHistory")||"[]");
-  let item=history[index];
+function loadHistory(idx){
+  const history = JSON.parse(localStorage.getItem(LS_KEY) || "[]");
+  const item = history[idx];
+  if(!item) return;
 
-  document.getElementById("companies").value=item.companies;
-  document.getElementById("mode").value=item.mode;
+  document.getElementById("companies").value = item.companies || "";
+  document.getElementById("mode").value = item.mode || "PAST";
 
-  document.getElementById("keywordContainer").innerHTML="";
-  keywordGroups=[];
+  // rebuild groups
+  document.getElementById("keywordContainer").innerHTML = "";
+  keywordGroups = [];
+  (item.keywords || []).slice(0, MAX_GROUPS).forEach(v => addKeywordGroup(v));
+  if(keywordGroups.length === 0) addKeywordGroup("");
 
-  item.keywords.forEach(k=>{
-    addKeywordGroup();
-    document.getElementById(keywordGroups[keywordGroups.length-1]).value=k;
-  });
+  generatedURL = item.url || "";
+  document.getElementById("urlFooter").innerText = generatedURL;
 
-  generatedURL=item.url;
-  document.getElementById("urlFooter").innerText=generatedURL;
+  // refresh expanded panels
+  document.getElementById("expandedCompanies").value = uniq((item.companies||"").split(SPLIT_REGEX)).join("\n");
+  const groupsFormatted = (item.keywords||[]).map(v=>formatGroup(v)).filter(Boolean);
+  document.getElementById("expandedKeywords").value = groupsFormatted.map(g=>`(${g})`).join(" AND ");
 }
 
-function deleteHistory(index){
-  let history=JSON.parse(localStorage.getItem("tayaHistory")||"[]");
-  history.splice(index,1);
-  localStorage.setItem("tayaHistory",JSON.stringify(history));
+function deleteHistory(idx){
+  const history = JSON.parse(localStorage.getItem(LS_KEY) || "[]");
+  history.splice(idx, 1);
+  localStorage.setItem(LS_KEY, JSON.stringify(history));
   renderHistory();
 }
 
 function clearHistory(){
-  localStorage.removeItem("tayaHistory");
+  localStorage.removeItem(LS_KEY);
   renderHistory();
 }
 
-function toggleTheme(){
-  document.body.classList.toggle("light");
+function escapeHtml(str){
+  return (str||"").replace(/[&<>"']/g, m => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[m]));
 }
 
-addKeywordGroup();
-renderHistory();
+/* ========= Theme + init ========= */
+function toggleTheme(){ document.body.classList.toggle("light"); }
 
+document.getElementById("lang").addEventListener("change", (e)=>{
+  const lang = e.target.value;
+  localStorage.setItem(LS_LANG, lang);
+  applyLang(lang);
+  renderHistory();
+});
+
+// init
+const savedLang = localStorage.getItem(LS_LANG) || "en";
+document.getElementById("lang").value = savedLang;
+applyLang(savedLang);
+
+addKeywordGroup(""); // default 1 group
+renderHistory();
 </script>
 </body>
 </html>

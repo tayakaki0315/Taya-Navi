@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Taya Navi</title>
-<link rel="icon" type="image/png" href="favicon.png">
 
 <style>
 :root{
@@ -56,17 +55,14 @@ button{
 .btn-open{background:var(--blue);color:white;border:none;}
 .btn-copy{background:transparent;color:var(--text);}
 .btn-clear{background:var(--red);color:white;border:none;}
-.group{
-  margin-bottom:15px;
-  position:relative;
-}
+.group{margin-bottom:15px;position:relative;}
 .remove-btn{
   position:absolute;
   right:0;
   top:0;
   font-size:12px;
   cursor:pointer;
-  opacity:.65;
+  opacity:.6;
 }
 .footer{
   margin-top:30px;
@@ -74,26 +70,11 @@ button{
   opacity:.35;
   word-break:break-all;
 }
-.history-item{
-  font-size:12px;
-  border:1px solid var(--border);
-  padding:8px;
-  border-radius:8px;
-  margin-bottom:8px;
-}
 .topbar{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  gap:10px;
 }
-.controls{
-  display:flex;
-  gap:10px;
-  align-items:center;
-}
-.toggle{cursor:pointer;opacity:.7;}
-hr{margin:18px 0;opacity:.2}
 </style>
 </head>
 
@@ -101,22 +82,20 @@ hr{margin:18px 0;opacity:.2}
 <div class="container">
 
 <div class="topbar">
-  <h2 id="ui_title">Taya Navi v3.4</h2>
-  <div class="controls">
-    <select id="lang">
-      <option value="en" selected>English</option>
-      <option value="ja">日本語</option>
-      <option value="zh">中文</option>
-    </select>
-    <div class="toggle" onclick="toggleTheme()">🌙 / ☀</div>
-  </div>
+  <h2 id="ui_title">Taya Navi v3.5</h2>
+  <select id="lang" onchange="setLanguage(this.value)">
+    <option value="en">English</option>
+    <option value="ja">日本語</option>
+    <option value="zh">中文</option>
+    <option value="mn">Монгол</option>
+  </select>
 </div>
 
 <div class="card">
-  <label><b id="ui_company_label">Company Names</b></label>
+  <label id="ui_company_label"><b>Company Names</b></label>
   <textarea id="companies"></textarea>
 
-  <label><b id="ui_mode_label">Mode</b></label>
+  <label id="ui_mode_label"><b>Mode</b></label>
   <select id="mode">
     <option value="PAST" id="ui_mode_past">Former only (exclude current)</option>
     <option value="CURRENT" id="ui_mode_current">Current only</option>
@@ -126,7 +105,7 @@ hr{margin:18px 0;opacity:.2}
   <hr>
 
   <div id="keywordContainer"></div>
-  <button id="ui_add_group" onclick="addKeywordGroup()">+ Add Keyword Group (AND)</button>
+  <button onclick="addKeywordGroup()" id="ui_add_group">+ Add Keyword Group (AND)</button>
 
   <br><br>
 
@@ -136,190 +115,106 @@ hr{margin:18px 0;opacity:.2}
   <button class="btn-clear" onclick="clearAllInputs()" id="ui_btn_clear">Clear All</button>
 </div>
 
-<div class="card">
-  <h3 id="ui_exp_companies">Expanded Companies</h3>
-  <textarea id="expandedCompanies" readonly></textarea>
-
-  <h3 id="ui_exp_keywords">Expanded Keywords</h3>
-  <textarea id="expandedKeywords" readonly></textarea>
-</div>
-
-<div class="card">
-  <h3 id="ui_history_title">Recent Searches</h3>
-  <div id="historyList"></div>
-  <button class="btn-clear" onclick="clearHistory()" id="ui_clear_history">Clear History</button>
-</div>
-
 <div class="footer" id="urlFooter"></div>
 
 </div>
 
 <script>
 
-const SPLIT_REGEX=/[\r\n,，、。:：・\/\\;；]+/g;
-const MAX_GROUPS=4;
-const MAX_HISTORY=10;
-const LS_KEY="tayaHistory_v34";
-
-let keywordGroups=[];
-let generatedURL="";
-
-function uniq(arr){return [...new Set(arr.map(x=>x.trim()).filter(Boolean))];}
-
-function encForKeywords(raw){
-  const once = encodeURIComponent(raw)
-    .replace(/\(/g,"%28")
-    .replace(/\)/g,"%29");
-  return once.replace(/%/g,"%25");
-}
-
-function encForCompany(raw){
-  const once = encodeURIComponent(raw);
-  return once.replace(/%/g,"%25");
-}
-
-function formatGroup(raw){
-  const list=uniq((raw||"").split(SPLIT_REGEX));
-  if(!list.length) return "";
-  return list.map(k=>{
-    if(/[\u4e00-\u9fff]/.test(k)) return `“${k}”`;
-    return `"${k}"`;
-  }).join(" OR ");
-}
-
-function buildFilters(names,mode){
-  function values(list,type){
-    return list.map(n=>`(text%3A${encForCompany(n)}%2CselectionType%3A${type})`).join("%2C");
+const i18n = {
+  en:{
+    company:"Company Names",
+    mode:"Mode",
+    past:"Former only (exclude current)",
+    current:"Current only",
+    both:"Both (Current + Past)",
+    add:"+ Add Keyword Group (AND)",
+    generate:"Generate",
+    open:"Open",
+    copy:"Copy",
+    clear:"Clear All",
+    confirmClear:"Are you sure you want to clear all inputs?"
+  },
+  ja:{
+    company:"会社名",
+    mode:"検索モード",
+    past:"過去のみ（現職除外）",
+    current:"現職のみ",
+    both:"現職＋過去",
+    add:"+ キーワードグループ追加（AND）",
+    generate:"生成",
+    open:"開く",
+    copy:"コピー",
+    clear:"すべてクリア",
+    confirmClear:"入力内容をすべてクリアしますか？"
+  },
+  zh:{
+    company:"公司名称",
+    mode:"搜索模式",
+    past:"仅过去（排除现职）",
+    current:"仅现职",
+    both:"现职 + 过去",
+    add:"+ 添加关键词组（AND）",
+    generate:"生成",
+    open:"打开",
+    copy:"复制",
+    clear:"清空全部",
+    confirmClear:"确定要清空所有输入内容吗？"
+  },
+  mn:{
+    company:"Компанийн нэр",
+    mode:"Хайх горим",
+    past:"Өмнөх ажил (одоогийнхыг хасна)",
+    current:"Одоогийн ажил",
+    both:"Одоогийн + Өмнөх",
+    add:"+ Түлхүүр үг нэмэх (AND)",
+    generate:"Үүсгэх",
+    open:"Нээх",
+    copy:"Хуулах",
+    clear:"Бүгдийг цэвэрлэх",
+    confirmClear:"Бүх оролтыг цэвэрлэхдээ итгэлтэй байна уу?"
   }
-  if(mode==="PAST")
-    return `(type%3APAST_COMPANY%2Cvalues%3AList(${values(names,"INCLUDED")}))%2C(type%3ACURRENT_COMPANY%2Cvalues%3AList(${values(names,"EXCLUDED")}))`;
-  if(mode==="CURRENT")
-    return `(type%3ACURRENT_COMPANY%2Cvalues%3AList(${values(names,"INCLUDED")}))`;
-  return `(type%3APAST_COMPANY%2Cvalues%3AList(${values(names,"INCLUDED")}))%2C(type%3ACURRENT_COMPANY%2Cvalues%3AList(${values(names,"INCLUDED")}))`;
-}
+};
 
-function generate(){
-  const companies=document.getElementById("companies").value;
-  const mode=document.getElementById("mode").value;
-  const names=uniq((companies||"").split(SPLIT_REGEX));
-  document.getElementById("expandedCompanies").value=names.join("\n");
+function setLanguage(lang){
+  localStorage.setItem("taya_lang",lang);
+  const t=i18n[lang];
 
-  const filters=buildFilters(names,mode);
-  const groupsFormatted=keywordGroups.map(id=>formatGroup(document.getElementById(id).value)).filter(Boolean);
-  const keywordString=groupsFormatted.map(g=>`(${g})`).join(" AND ");
-  document.getElementById("expandedKeywords").value=keywordString;
-
-  const keywordBlock=keywordString?`%2Ckeywords%3A${encForKeywords(keywordString)}`:"";
-  const query=`(spellCorrectionEnabled%3Atrue%2CrecentSearchParam%3A(doLogHistory%3Atrue)%2Cfilters%3AList(${filters})${keywordBlock})`;
-  generatedURL=`https://www.linkedin.com/sales/search/people?query=${query}&viewAllFilters=true`;
-  document.getElementById("urlFooter").innerText=generatedURL;
-  saveHistory();
-}
-
-function copyURL(){if(generatedURL)navigator.clipboard.writeText(generatedURL);}
-function openURL(){if(generatedURL)window.open(generatedURL,"_blank");}
-
-function addKeywordGroup(value=""){
-  if(keywordGroups.length>=MAX_GROUPS)return;
-  const id="kw"+Date.now();
-  keywordGroups.push(id);
-  const div=document.createElement("div");
-  div.className="group";
-  div.innerHTML=`<label><b>Keyword Group (${keywordGroups.length})</b></label>
-  <span class="remove-btn" onclick="removeGroup('${id}')">Remove</span>
-  <textarea id="${id}">${value}</textarea>`;
-  document.getElementById("keywordContainer").appendChild(div);
-}
-
-function removeGroup(id){
-  keywordGroups=keywordGroups.filter(x=>x!==id);
-  document.getElementById(id).parentElement.remove();
+  document.getElementById("ui_company_label").innerHTML="<b>"+t.company+"</b>";
+  document.getElementById("ui_mode_label").innerHTML="<b>"+t.mode+"</b>";
+  document.getElementById("ui_mode_past").innerText=t.past;
+  document.getElementById("ui_mode_current").innerText=t.current;
+  document.getElementById("ui_mode_both").innerText=t.both;
+  document.getElementById("ui_add_group").innerText=t.add;
+  document.getElementById("ui_btn_generate").innerText=t.generate;
+  document.getElementById("ui_btn_open").innerText=t.open;
+  document.getElementById("ui_btn_copy").innerText=t.copy;
+  document.getElementById("ui_btn_clear").innerText=t.clear;
 }
 
 function clearAllInputs(){
-  const msgs={
-    en:"Are you sure you want to clear all inputs?",
-    ja:"入力内容をすべてクリアしますか？",
-    zh:"确定要清空所有输入内容吗？"
-  };
-  const lang=document.getElementById("lang").value;
-  if(!confirm(msgs[lang]||msgs.en))return;
-
+  const lang=localStorage.getItem("taya_lang")||"en";
+  if(!confirm(i18n[lang].confirmClear)) return;
   document.getElementById("companies").value="";
-  document.getElementById("mode").value="PAST";
-  document.getElementById("keywordContainer").innerHTML="";
-  keywordGroups=[];
-  addKeywordGroup("");
-  document.getElementById("expandedCompanies").value="";
-  document.getElementById("expandedKeywords").value="";
   document.getElementById("urlFooter").innerText="";
-  generatedURL="";
 }
 
-function saveHistory(){
-  if(!generatedURL)return;
-  const history=JSON.parse(localStorage.getItem(LS_KEY)||"[]");
-  history.unshift({
-    companies:document.getElementById("companies").value,
-    mode:document.getElementById("mode").value,
-    keywords:keywordGroups.map(id=>document.getElementById(id).value),
-    url:generatedURL,
-    time:new Date().toLocaleString()
-  });
-  localStorage.setItem(LS_KEY,JSON.stringify(history.slice(0,MAX_HISTORY)));
-  renderHistory();
+function addKeywordGroup(){
+  const div=document.createElement("div");
+  div.className="group";
+  div.innerHTML=`<textarea></textarea>`;
+  document.getElementById("keywordContainer").appendChild(div);
 }
 
-function renderHistory(){
-  const history=JSON.parse(localStorage.getItem(LS_KEY)||"[]");
-  const container=document.getElementById("historyList");
-  container.innerHTML="";
-  history.forEach((item,index)=>{
-    const div=document.createElement("div");
-    div.className="history-item";
-    div.innerHTML=`<b>${item.time}</b><br>${item.companies}<br>
-    <button onclick="loadHistory(${index})">Load</button>
-    <button onclick="deleteHistory(${index})">Delete</button>`;
-    container.appendChild(div);
-  });
-}
+function generate(){document.getElementById("urlFooter").innerText="Generated";}
+function copyURL(){navigator.clipboard.writeText(document.getElementById("urlFooter").innerText);}
+function openURL(){}
 
-function loadHistory(index){
-  const history=JSON.parse(localStorage.getItem(LS_KEY)||"[]");
-  const item=history[index];
-  if(!item)return;
-  document.getElementById("companies").value=item.companies;
-  document.getElementById("mode").value=item.mode;
-  document.getElementById("keywordContainer").innerHTML="";
-  keywordGroups=[];
-  item.keywords.forEach(k=>addKeywordGroup(k));
-  generatedURL=item.url;
-  document.getElementById("urlFooter").innerText=generatedURL;
-}
+addKeywordGroup();
 
-function deleteHistory(index){
-  const history=JSON.parse(localStorage.getItem(LS_KEY)||"[]");
-  history.splice(index,1);
-  localStorage.setItem(LS_KEY,JSON.stringify(history));
-  renderHistory();
-}
-
-function clearHistory(){
-  const msgs={
-    en:"Clear all history?",
-    ja:"履歴をすべて削除しますか？",
-    zh:"确定要清空历史记录吗？"
-  };
-  const lang=document.getElementById("lang").value;
-  if(!confirm(msgs[lang]||msgs.en))return;
-  localStorage.removeItem(LS_KEY);
-  renderHistory();
-}
-
-function toggleTheme(){document.body.classList.toggle("light");}
-
-addKeywordGroup("");
-renderHistory();
+const savedLang=localStorage.getItem("taya_lang")||"en";
+document.getElementById("lang").value=savedLang;
+setLanguage(savedLang);
 
 </script>
 </body>

@@ -1,79 +1,237 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Taya Navi</title>
 
 <style>
+/* ===========================
+   THEME SYSTEM
+=========================== */
+
 :root{
-  --bg:#0f1117;
-  --card:#171a23;
-  --text:#eaeef3;
-  --border:#2a2f3c;
-  --green:#1bb76e;
-  --blue:#2f5eff;
-  --red:#c0392b;
-}
-.light{
   --bg:#f4f6fb;
   --card:#ffffff;
-  --text:#111;
-  --border:#d0d6e2;
+  --card2:#f8f9fd;
+  --text:#111827;
+  --muted:#55617a;
+  --border:#d6dbe6;
+
+  --green:#1bb76e;
+  --blue:#2f5eff;
+  --red:#d64545;
+  --shadow:0 10px 30px rgba(17,24,39,.08);
+  --radius:16px;
 }
+
+.dark{
+  --bg:#0f1117;
+  --card:#171a23;
+  --card2:#10131a;
+  --text:#eaeef3;
+  --muted:#9aa4b6;
+  --border:#2a2f3c;
+  --shadow:0 10px 30px rgba(0,0,0,.35);
+}
+
+/* ===========================
+   BASE
+=========================== */
+
+*{box-sizing:border-box}
+
 body{
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;
-  background:var(--bg);
-  color:var(--text);
   margin:0;
-  padding:30px;
-}
-.container{max-width:1000px;margin:auto}
-.card{
-  background:var(--card);
-  padding:20px;
-  border-radius:14px;
-  margin-bottom:20px;
-}
-textarea,select{
-  width:100%;
+  padding:28px;
   background:var(--bg);
   color:var(--text);
-  border:1px solid var(--border);
-  border-radius:10px;
-  padding:10px;
-  margin-top:6px;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"PingFang SC","Hiragino Sans","Noto Sans JP",sans-serif;
+  line-height:1.5;
+  transition:.25s ease;
 }
-button{
-  padding:6px 12px;
-  border-radius:8px;
-  border:1px solid var(--border);
-  cursor:pointer;
-  margin-right:8px;
-}
-.btn-generate{background:var(--green);color:white;border:none;}
-.btn-open{background:var(--blue);color:white;border:none;}
-.btn-copy{background:transparent;color:var(--text);}
-.btn-clear{background:var(--red);color:white;border:none;}
-.group{margin-bottom:15px;position:relative;}
-.remove-btn{
-  position:absolute;
-  right:0;
-  top:0;
-  font-size:12px;
-  cursor:pointer;
-  opacity:.6;
-}
-.footer{
-  margin-top:30px;
-  font-size:11px;
-  opacity:.35;
-  word-break:break-all;
-}
+
+.container{max-width:1100px;margin:0 auto}
+
+h1{margin:0;font-size:28px}
+
 .topbar{
   display:flex;
   justify-content:space-between;
   align-items:center;
+  margin-bottom:20px;
+}
+
+.sub{font-size:12px;color:var(--muted)}
+
+.controls{display:flex;gap:14px;align-items:center}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:18px;
+  margin-bottom:18px;
+  transition:.25s ease;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1.3fr .7fr;
+  gap:20px;
+}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+
+textarea, select{
+  width:100%;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:transparent;
+  color:var(--text);
+  font-size:13px;
+}
+
+textarea{min-height:100px;resize:vertical}
+
+.labelrow{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:6px;
+}
+
+.hint{font-size:12px;color:var(--muted)}
+
+hr{
+  border:none;
+  border-top:1px solid var(--border);
+  margin:14px 0;
+}
+
+/* ===========================
+   BUTTONS
+=========================== */
+
+.btns{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+
+button{
+  padding:8px 14px;
+  border-radius:12px;
+  font-size:13px;
+  cursor:pointer;
+  border:1px solid var(--border);
+  background:transparent;
+  color:var(--text);
+  transition:.15s;
+}
+button:active{transform:translateY(1px)}
+
+.btn-generate{
+  background:linear-gradient(180deg,rgba(27,183,110,.4),rgba(27,183,110,.15));
+  border-color:rgba(27,183,110,.7);
+}
+
+.btn-open{
+  background:linear-gradient(180deg,rgba(47,94,255,.4),rgba(47,94,255,.15));
+  border-color:rgba(47,94,255,.7);
+}
+
+.btn-copy{opacity:.85}
+
+.btn-clear{
+  background:linear-gradient(180deg,rgba(214,69,69,.4),rgba(214,69,69,.15));
+  border-color:rgba(214,69,69,.7);
+}
+
+/* ===========================
+   KEYWORD GROUP
+=========================== */
+
+.kwrap{
+  background:var(--card2);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:14px;
+}
+
+.group{margin-bottom:14px;position:relative}
+
+.remove{
+  position:absolute;
+  right:0;
+  top:0;
+  font-size:12px;
+  color:var(--muted);
+  cursor:pointer;
+}
+
+.smallbtn{
+  padding:6px 12px;
+  border-radius:12px;
+  font-size:12px;
+}
+
+/* ===========================
+   SWITCH (iOS style)
+=========================== */
+
+.switch{
+  position:relative;
+  width:52px;
+  height:26px;
+}
+.switch input{display:none}
+
+.slider{
+  position:absolute;
+  inset:0;
+  background:#cfd6e4;
+  border-radius:30px;
+  cursor:pointer;
+  transition:.25s;
+}
+.slider:before{
+  content:"";
+  position:absolute;
+  height:22px;
+  width:22px;
+  left:2px;
+  top:2px;
+  background:white;
+  border-radius:50%;
+  transition:.25s;
+  box-shadow:0 2px 6px rgba(0,0,0,.25);
+}
+.switch input:checked + .slider{
+  background:#1bb76e;
+}
+.switch input:checked + .slider:before{
+  transform:translateX(26px);
+}
+
+/* ===========================
+   HISTORY
+=========================== */
+
+.history-item{
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:10px;
+  margin-bottom:10px;
+}
+.history-meta{
+  font-size:12px;
+  color:var(--muted);
+  margin-bottom:6px;
+}
+
+.footerurl{
+  font-size:11px;
+  color:var(--muted);
+  margin-top:8px;
+  word-break:break-all;
 }
 </style>
 </head>
@@ -82,140 +240,269 @@ button{
 <div class="container">
 
 <div class="topbar">
-  <h2 id="ui_title">Taya Navi v3.5</h2>
-  <select id="lang" onchange="setLanguage(this.value)">
-    <option value="en">English</option>
-    <option value="ja">日本語</option>
-    <option value="zh">中文</option>
-    <option value="mn">Монгол</option>
-  </select>
+  <div>
+    <h1>Taya Navi v3.7</h1>
+    <div class="sub">Sales Navigator URL Builder</div>
+  </div>
+
+  <div class="controls">
+    <select id="lang">
+      <option value="en">English</option>
+      <option value="ja">日本語</option>
+      <option value="zh">中文</option>
+      <option value="mn">Монгол</option>
+    </select>
+
+    <label class="switch">
+      <input type="checkbox" id="themeToggle">
+      <span class="slider"></span>
+    </label>
+  </div>
 </div>
 
 <div class="card">
-  <label id="ui_company_label"><b>Company Names</b></label>
-  <textarea id="companies"></textarea>
+<div class="grid">
 
-  <label id="ui_mode_label"><b>Mode</b></label>
+<div>
+  <div class="labelrow"><b>Company Names</b></div>
+  <textarea id="companies"></textarea>
+  <div class="hint">comma / 、 / ・ / / / newline supported</div>
+</div>
+
+<div>
+  <div class="labelrow"><b>Mode</b></div>
   <select id="mode">
-    <option value="PAST" id="ui_mode_past">Former only (exclude current)</option>
-    <option value="CURRENT" id="ui_mode_current">Current only</option>
-    <option value="BOTH" id="ui_mode_both">Both (Current + Past)</option>
+    <option value="PAST">Former only (exclude current)</option>
+    <option value="CURRENT">Current only</option>
+    <option value="BOTH">Both</option>
   </select>
 
   <hr>
 
-  <div id="keywordContainer"></div>
-  <button onclick="addKeywordGroup()" id="ui_add_group">+ Add Keyword Group (AND)</button>
-
-  <br><br>
-
-  <button class="btn-generate" onclick="generate()" id="ui_btn_generate">Generate</button>
-  <button class="btn-open" onclick="openURL()" id="ui_btn_open">Open</button>
-  <button class="btn-copy" onclick="copyURL()" id="ui_btn_copy">Copy</button>
-  <button class="btn-clear" onclick="clearAllInputs()" id="ui_btn_clear">Clear All</button>
+  <div class="kwrap">
+    <div class="labelrow"><b>Keyword Groups</b></div>
+    <div id="keywordContainer"></div>
+    <button class="smallbtn" onclick="addKeywordGroup()">+ Add Keyword Group (AND)</button>
+  </div>
 </div>
 
-<div class="footer" id="urlFooter"></div>
+</div>
+
+<div class="btns">
+  <button class="btn-generate" onclick="generate()">Generate</button>
+  <button class="btn-open" onclick="openURL()">Open</button>
+  <button class="btn-copy" onclick="copyURL()">Copy</button>
+  <button class="btn-clear" onclick="clearAllInputs()">Clear All</button>
+</div>
+
+<div class="footerurl" id="urlFooter"></div>
+</div>
+
+<div class="card">
+  <div class="grid">
+    <div>
+      <b>Expanded Companies</b>
+      <textarea id="expandedCompanies" readonly></textarea>
+    </div>
+    <div>
+      <b>Expanded Keywords</b>
+      <textarea id="expandedKeywords" readonly></textarea>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <b>Recent Searches</b>
+  <div id="historyList"></div>
+  <button class="btn-clear" onclick="clearHistory()">Clear History</button>
+</div>
 
 </div>
 
 <script>
+/* ===========================
+   CORE LOGIC
+=========================== */
 
-const i18n = {
-  en:{
-    company:"Company Names",
-    mode:"Mode",
-    past:"Former only (exclude current)",
-    current:"Current only",
-    both:"Both (Current + Past)",
-    add:"+ Add Keyword Group (AND)",
-    generate:"Generate",
-    open:"Open",
-    copy:"Copy",
-    clear:"Clear All",
-    confirmClear:"Are you sure you want to clear all inputs?"
-  },
-  ja:{
-    company:"会社名",
-    mode:"検索モード",
-    past:"過去のみ（現職除外）",
-    current:"現職のみ",
-    both:"現職＋過去",
-    add:"+ キーワードグループ追加（AND）",
-    generate:"生成",
-    open:"開く",
-    copy:"コピー",
-    clear:"すべてクリア",
-    confirmClear:"入力内容をすべてクリアしますか？"
-  },
-  zh:{
-    company:"公司名称",
-    mode:"搜索模式",
-    past:"仅过去（排除现职）",
-    current:"仅现职",
-    both:"现职 + 过去",
-    add:"+ 添加关键词组（AND）",
-    generate:"生成",
-    open:"打开",
-    copy:"复制",
-    clear:"清空全部",
-    confirmClear:"确定要清空所有输入内容吗？"
-  },
-  mn:{
-    company:"Компанийн нэр",
-    mode:"Хайх горим",
-    past:"Өмнөх ажил (одоогийнхыг хасна)",
-    current:"Одоогийн ажил",
-    both:"Одоогийн + Өмнөх",
-    add:"+ Түлхүүр үг нэмэх (AND)",
-    generate:"Үүсгэх",
-    open:"Нээх",
-    copy:"Хуулах",
-    clear:"Бүгдийг цэвэрлэх",
-    confirmClear:"Бүх оролтыг цэвэрлэхдээ итгэлтэй байна уу?"
-  }
-};
+const SPLIT_REGEX=/[\r\n,，、。:：・\/\\;；]+/g;
+const MAX_GROUPS=4;
+const LS_HISTORY="tayaHistory_v37";
+const LS_THEME="tayaTheme_v37";
 
-function setLanguage(lang){
-  localStorage.setItem("taya_lang",lang);
-  const t=i18n[lang];
+let keywordGroups=[];
+let generatedURL="";
 
-  document.getElementById("ui_company_label").innerHTML="<b>"+t.company+"</b>";
-  document.getElementById("ui_mode_label").innerHTML="<b>"+t.mode+"</b>";
-  document.getElementById("ui_mode_past").innerText=t.past;
-  document.getElementById("ui_mode_current").innerText=t.current;
-  document.getElementById("ui_mode_both").innerText=t.both;
-  document.getElementById("ui_add_group").innerText=t.add;
-  document.getElementById("ui_btn_generate").innerText=t.generate;
-  document.getElementById("ui_btn_open").innerText=t.open;
-  document.getElementById("ui_btn_copy").innerText=t.copy;
-  document.getElementById("ui_btn_clear").innerText=t.clear;
+/* ===========================
+   THEME
+=========================== */
+
+const themeToggle=document.getElementById("themeToggle");
+themeToggle.addEventListener("change",()=>{
+  document.body.classList.toggle("dark",themeToggle.checked);
+  localStorage.setItem(LS_THEME,themeToggle.checked?"dark":"light");
+});
+if(localStorage.getItem(LS_THEME)==="dark"){
+  document.body.classList.add("dark");
+  themeToggle.checked=true;
 }
 
-function clearAllInputs(){
-  const lang=localStorage.getItem("taya_lang")||"en";
-  if(!confirm(i18n[lang].confirmClear)) return;
-  document.getElementById("companies").value="";
-  document.getElementById("urlFooter").innerText="";
-}
+/* ===========================
+   KEYWORD GROUPS
+=========================== */
 
-function addKeywordGroup(){
+function addKeywordGroup(value=""){
+  if(keywordGroups.length>=MAX_GROUPS) return;
+  const id="kw"+Date.now();
+  keywordGroups.push(id);
+
   const div=document.createElement("div");
   div.className="group";
-  div.innerHTML=`<textarea></textarea>`;
+  div.innerHTML=`
+    <div class="labelrow">
+      <b>Group ${keywordGroups.length}</b>
+      <span class="remove" onclick="removeGroup('${id}')">Remove</span>
+    </div>
+    <textarea id="${id}">${value}</textarea>
+  `;
   document.getElementById("keywordContainer").appendChild(div);
 }
 
-function generate(){document.getElementById("urlFooter").innerText="Generated";}
-function copyURL(){navigator.clipboard.writeText(document.getElementById("urlFooter").innerText);}
-function openURL(){}
+function removeGroup(id){
+  keywordGroups=keywordGroups.filter(x=>x!==id);
+  document.getElementById(id).parentElement.remove();
+}
 
-addKeywordGroup();
+/* ===========================
+   GENERATE
+=========================== */
 
-const savedLang=localStorage.getItem("taya_lang")||"en";
-document.getElementById("lang").value=savedLang;
-setLanguage(savedLang);
+function uniq(arr){return [...new Set(arr.map(x=>x.trim()).filter(Boolean))];}
 
+function encDouble(str){
+  return encodeURIComponent(str).replace(/%/g,"%25");
+}
+
+function formatGroup(raw){
+  const list=uniq((raw||"").split(SPLIT_REGEX));
+  if(!list.length) return "";
+  return list.map(k=>`"${k}"`).join(" OR ");
+}
+
+function buildFilters(names,mode){
+  function values(list,type){
+    return list.map(n=>`(text%3A${encDouble(n)}%2CselectionType%3A${type})`).join("%2C");
+  }
+  if(mode==="PAST"){
+    return `(type%3APAST_COMPANY%2Cvalues%3AList(${values(names,"INCLUDED")}))%2C(type%3ACURRENT_COMPANY%2Cvalues%3AList(${values(names,"EXCLUDED")}))`;
+  }
+  if(mode==="CURRENT"){
+    return `(type%3ACURRENT_COMPANY%2Cvalues%3AList(${values(names,"INCLUDED")}))`;
+  }
+  return `(type%3APAST_COMPANY%2Cvalues%3AList(${values(names,"INCLUDED")}))%2C(type%3ACURRENT_COMPANY%2Cvalues%3AList(${values(names,"INCLUDED")}))`;
+}
+
+function generate(){
+  const companies=document.getElementById("companies").value;
+  const mode=document.getElementById("mode").value;
+  const names=uniq((companies||"").split(SPLIT_REGEX));
+  document.getElementById("expandedCompanies").value=names.join("\n");
+
+  const filters=buildFilters(names,mode);
+
+  const groups=keywordGroups
+    .map(id=>formatGroup(document.getElementById(id).value))
+    .filter(Boolean);
+
+  const keywordString=groups.map(g=>`(${g})`).join(" AND ");
+  document.getElementById("expandedKeywords").value=keywordString;
+
+  const keywordBlock=keywordString?`%2Ckeywords%3A${encDouble(keywordString)}`:"";
+  const query=`(spellCorrectionEnabled%3Atrue%2Cfilters%3AList(${filters})${keywordBlock})`;
+  generatedURL=`https://www.linkedin.com/sales/search/people?query=${query}&viewAllFilters=true`;
+
+  document.getElementById("urlFooter").innerText=generatedURL;
+  saveHistory();
+}
+
+function openURL(){if(generatedURL)window.open(generatedURL,"_blank");}
+function copyURL(){if(generatedURL)navigator.clipboard.writeText(generatedURL);}
+
+/* ===========================
+   CLEAR
+=========================== */
+
+function clearAllInputs(){
+  if(!confirm("Clear all inputs?")) return;
+  document.getElementById("companies").value="";
+  document.getElementById("mode").value="PAST";
+  document.getElementById("keywordContainer").innerHTML="";
+  keywordGroups=[];
+  addKeywordGroup("");
+  document.getElementById("expandedCompanies").value="";
+  document.getElementById("expandedKeywords").value="";
+  document.getElementById("urlFooter").innerText="";
+  generatedURL="";
+}
+
+/* ===========================
+   HISTORY
+=========================== */
+
+function saveHistory(){
+  if(!generatedURL) return;
+  const history=JSON.parse(localStorage.getItem(LS_HISTORY)||"[]");
+  history.unshift({
+    companies:document.getElementById("companies").value,
+    url:generatedURL,
+    time:new Date().toLocaleString()
+  });
+  localStorage.setItem(LS_HISTORY,JSON.stringify(history.slice(0,10)));
+  renderHistory();
+}
+
+function renderHistory(){
+  const history=JSON.parse(localStorage.getItem(LS_HISTORY)||"[]");
+  const container=document.getElementById("historyList");
+  container.innerHTML="";
+  history.forEach((item,i)=>{
+    const div=document.createElement("div");
+    div.className="history-item";
+    div.innerHTML=`
+      <div class="history-meta">${item.time}</div>
+      <div>${item.companies}</div>
+      <button onclick="loadHistory(${i})">Load</button>
+      <button onclick="deleteHistory(${i})">Delete</button>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function loadHistory(i){
+  const history=JSON.parse(localStorage.getItem(LS_HISTORY)||"[]");
+  const item=history[i];
+  if(!item) return;
+  document.getElementById("companies").value=item.companies;
+  generatedURL=item.url;
+  document.getElementById("urlFooter").innerText=generatedURL;
+}
+
+function deleteHistory(i){
+  const history=JSON.parse(localStorage.getItem(LS_HISTORY)||"[]");
+  history.splice(i,1);
+  localStorage.setItem(LS_HISTORY,JSON.stringify(history));
+  renderHistory();
+}
+
+function clearHistory(){
+  if(!confirm("Clear history?")) return;
+  localStorage.removeItem(LS_HISTORY);
+  renderHistory();
+}
+
+/* INIT */
+addKeywordGroup("");
+renderHistory();
 </script>
+
 </body>
 </html>

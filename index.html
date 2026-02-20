@@ -95,6 +95,12 @@ button{
 }
 .toggle{cursor:pointer;opacity:.7;}
 hr{margin:18px 0;opacity:.2}
+
+.hint{
+  font-size:12px;
+  opacity:.6;
+  margin-top:4px;
+}  
 </style>
 </head>
 
@@ -118,7 +124,8 @@ hr{margin:18px 0;opacity:.2}
 <div class="card">
   <label><b id="ui_company_label">Company Names</b></label>
   <textarea id="companies"></textarea>
-
+<div class="hint" id="ui_company_hint"></div>
+  
   <label><b id="ui_mode_label">Mode</b></label>
   <select id="mode">
     <option value="PAST" id="ui_mode_past">Former only (exclude current)</option>
@@ -183,6 +190,9 @@ const LANG = {
     clearHistory:"Clear History",
     confirmClear:"Are you sure you want to clear all inputs?",
     confirmHistory:"Clear all history?"
+
+    companyHint:"Use line breaks or separators like , ， 。 / :  Example: Google, Microsoft / Amazon",
+    keywordHint:"Use line breaks or separators like , ， 。 / :  Example: Data Center, Power / Grid",
   },
   ja:{
     company:"会社名",
@@ -199,6 +209,10 @@ const LANG = {
     clearHistory:"履歴を削除",
     confirmClear:"入力内容をすべてクリアしますか？",
     confirmHistory:"履歴をすべて削除しますか？"
+
+    companyHint:"改行または , ， 。 / : などで区切れます。例：Google, Microsoft / Amazon",
+    keywordHint:"改行または , ， 。 / : などで区切れます。例：Data Center, Power / Grid",
+
   },
   zh_cn:{
     company:"公司名称",
@@ -215,6 +229,9 @@ const LANG = {
     clearHistory:"清空历史",
     confirmClear:"确定要清空所有输入内容吗？",
     confirmHistory:"确定要清空历史记录吗？"
+
+    companyHint:"可使用换行或 , ， 。 / : 等符号分隔。例如：Google, Microsoft / Amazon",
+    keywordHint:"可使用换行或 , ， 。 / : 等符号分隔。例如：Data Center, Power / Grid",
   },
   zh_tw:{
     company:"公司名稱",
@@ -231,6 +248,9 @@ const LANG = {
     clearHistory:"清除歷史",
     confirmClear:"確定要清空所有輸入內容嗎？",
     confirmHistory:"確定要清空歷史紀錄嗎？"
+
+    companyHint:"可使用換行或 , ， 。 / : 等符號分隔。例如：Google, Microsoft / Amazon",
+    keywordHint:"可使用換行或 , ， 。 / : 等符號分隔。例如：Data Center, Power / Grid",
   },
   mn:{
     company:"Компанийн нэр",
@@ -247,6 +267,9 @@ const LANG = {
     clearHistory:"Түүх устгах",
     confirmClear:"Бүх оруулсан мэдээллийг устгах уу?",
     confirmHistory:"Бүх түүхийг устгах уу?"
+
+    companyHint:"Мөрөөр эсвэл , ， 。 / : тэмдэгтээр тусгаарлаж болно. Жишээ: Google, Microsoft / Amazon",
+    keywordHint:"Мөрөөр эсвэл , ， 。 / : тэмдэгтээр тусгаарлаж болно. Жишээ: Data Center, Power / Grid",
   }
 };
   
@@ -311,9 +334,12 @@ function addKeywordGroup(value=""){
   keywordGroups.push(id);
   const div=document.createElement("div");
   div.className="group";
-  div.innerHTML=`<label><b>Keyword Group (${keywordGroups.length})</b></label>
-  <span class="remove-btn" onclick="removeGroup('${id}')">Remove</span>
-  <textarea id="${id}">${value}</textarea>`;
+div.innerHTML=`
+<label><b>Keyword Group (${keywordGroups.length})</b></label>
+<span class="remove-btn" onclick="removeGroup('${id}')">Remove</span>
+<textarea id="${id}">${value}</textarea>
+<div class="hint keyword-hint"></div>`;
+  
   document.getElementById("keywordContainer").appendChild(div);
 }
 
@@ -420,6 +446,9 @@ function applyLanguage(){
   document.getElementById("ui_btn_clear").innerText=t.clear;
   document.getElementById("ui_history_title").innerText=t.history;
   document.getElementById("ui_clear_history").innerText=t.clearHistory;
+  document.getElementById("ui_company_hint").innerText = t.companyHint || "";
+  document.querySelectorAll(".keyword-hint").forEach(el=>{el.innerText = t.keywordHint || "";});
+  applyLanguage();
 }
   
 addKeywordGroup("");

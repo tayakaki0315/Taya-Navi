@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Taya Navi</title>
+<link rel="icon" type="image/png" href="favicon.png">
 
 <style>
 :root{
@@ -11,19 +12,14 @@
   --card:#171a23;
   --text:#eaeef3;
   --border:#2a2f3c;
-  --button:#202636;
   --primary:#2f5eff;
 }
-
 .light{
   --bg:#f4f6fb;
   --card:#ffffff;
   --text:#111;
   --border:#d0d6e2;
-  --button:#e7ebf3;
-  --primary:#2f5eff;
 }
-
 body{
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
   background:var(--bg);
@@ -32,9 +28,7 @@ body{
   padding:30px;
   transition:.25s;
 }
-h1{margin:0 0 6px 0}
-small{opacity:.7}
-.container{max-width:1100px;margin:auto}
+.container{max-width:1000px;margin:auto}
 .card{
   background:var(--card);
   padding:20px;
@@ -52,27 +46,17 @@ textarea,input,select{
   font-size:14px;
 }
 button{
-  padding:10px 14px;
-  border-radius:10px;
+  padding:6px 10px;
+  border-radius:8px;
   border:1px solid var(--border);
-  background:var(--button);
+  background:transparent;
   color:var(--text);
   cursor:pointer;
-  margin-right:10px;
 }
-button.primary{
+.primary{
   background:var(--primary);
   border:none;
   color:white;
-}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.status{margin-top:12px;font-size:13px}
-.good{color:#4cd7a6}
-.footer{
-  margin-top:40px;
-  text-align:center;
-  font-size:12px;
-  opacity:.4;
 }
 .topbar{
   display:flex;
@@ -80,11 +64,24 @@ button.primary{
   align-items:center;
   margin-bottom:20px;
 }
-.toggle{
-  cursor:pointer;
-  font-size:14px;
-  opacity:.7;
+.group{margin-bottom:15px;}
+.footer{
+  margin-top:40px;
+  font-size:12px;
+  opacity:.35;
+  word-break:break-all;
 }
+.history-item{
+  font-size:12px;
+  margin-bottom:6px;
+  padding:6px;
+  border:1px solid var(--border);
+  border-radius:6px;
+}
+.history-buttons{
+  margin-top:4px;
+}
+.toggle{cursor:pointer;opacity:.6;}
 </style>
 </head>
 
@@ -92,101 +89,51 @@ button.primary{
 <div class="container">
 
 <div class="topbar">
-<div>
-<h1>Taya Navi v2.2</h1>
-<small>Sales Navigator URL Engine</small>
-</div>
+<h2>Taya Navi v3.1</h2>
 <div class="toggle" onclick="toggleTheme()">🌙 / ☀</div>
 </div>
 
 <div class="card">
 <label><b>Company Names</b></label>
-<textarea id="companies" placeholder="Sunpower, Ricor Systems / Eaton・Cryomech"></textarea>
+<textarea id="companies"></textarea>
 
-<label><b>Keywords (Optional)</b></label>
-<textarea id="keywords" placeholder="購買, Sales / 営業"></textarea>
-
-<div class="row">
-<div>
 <label><b>Mode</b></label>
 <select id="mode">
 <option value="PAST">Former only (exclude current)</option>
 <option value="CURRENT">Current only</option>
 <option value="BOTH">Both (Current + Past)</option>
 </select>
-</div>
 
-<div>
-<label><b>Industry Template</b></label>
-<select id="template">
-<option value="generic">Generic</option>
-<option value="ff">Fragrance & Flavor</option>
-<option value="dc">Data Center</option>
-<option value="chem">Chemicals</option>
-<option value="energy">Energy</option>
-</select>
-</div>
-</div>
+<hr style="margin:20px 0;opacity:.2">
 
-<br>
+<div id="keywordContainer"></div>
+<button onclick="addKeywordGroup()">+ Add Keyword Group (AND)</button>
 
-<button class="primary" onclick="build()">Generate URL</button>
-<button onclick="copyURL()">Copy URL</button>
+<br><br>
+
+<button class="primary" onclick="copyURL()">Copy URL</button>
 <button onclick="openURL()">Open URL</button>
 
-<div id="status" class="status"></div>
 </div>
 
 <div class="card">
-<label><b>Generated URL</b></label>
-<textarea id="output" readonly style="min-height:150px;"></textarea>
-
-<label><b>Expanded Companies</b></label>
-<textarea id="expanded" readonly style="min-height:120px;"></textarea>
-
-<label><b>Formatted Keywords</b></label>
-<textarea id="expandedKeywords" readonly style="min-height:80px;"></textarea>
+<h3>Recent Searches</h3>
+<div id="historyList"></div>
+<button onclick="clearHistory()">Clear All</button>
 </div>
 
-<div class="footer">
-Taya Navi v2.2 – Keyword Engine Added – 2026.02.20
-</div>
+<div class="footer" id="urlFooter"></div>
 
 </div>
 
 <script>
 
 const SPLIT_REGEX=/[\r\n,，、:：・\/\\;；]+/g;
+const MAX_GROUPS=4;
+const MAX_HISTORY=10;
 
-const JP_SUFFIXES=["株式会社","有限会社","合同会社","合資会社","合名会社","（株）","（有）","㈱","㈲"];
-
-const EN_SUFFIX_PATTERNS=[
-/\bco\.\s*ltd\.?$/i,
-/\bltd\.?$/i,
-/\blimited$/i,
-/\binc\.?$/i,
-/\bincorporated$/i,
-/\bcorp\.?$/i,
-/\bcorporation$/i,
-/\bllc\.?$/i,
-/\bplc\.?$/i,
-/\bag$/i,
-/\bgmbh$/i,
-/\bs\.a\.?$/i,
-/\bs\.p\.a\.?$/i,
-/\bb\.v\.?$/i,
-/\bn\.v\.?$/i,
-/\bpty\.?\s*ltd\.?$/i,
-/\bk\.k\.?$/i,
-/\bkk$/i
-];
-
-function stripSuffix(name){
-  let s=name.trim();
-  JP_SUFFIXES.forEach(j=>{if(s.endsWith(j))s=s.replace(j,"").trim();});
-  EN_SUFFIX_PATTERNS.forEach(re=>{s=s.replace(re,"").trim();});
-  return s;
-}
+let keywordGroups=[];
+let generatedURL="";
 
 function uniq(arr){
   return [...new Set(arr.map(x=>x.trim()).filter(Boolean))];
@@ -196,9 +143,13 @@ function encodeCompany(name){
   return encodeURIComponent(name).replace(/%/g,"%25");
 }
 
-function formatKeywords(raw){
-  if(!raw.trim()) return "";
+function encodeKeywords(str){
+  return encodeURIComponent(str).replace(/%/g,"%25");
+}
+
+function formatGroup(raw){
   let list=uniq(raw.split(SPLIT_REGEX));
+  if(!list.length) return "";
   let formatted=list.map(k=>{
     if(/[\u4e00-\u9fff]/.test(k)){
       return "“"+k+"”";
@@ -209,24 +160,10 @@ function formatKeywords(raw){
   return formatted.join(" OR ");
 }
 
-function encodeKeywords(str){
-  return encodeURIComponent(str).replace(/%/g,"%25");
-}
-
-function build(){
-  let companiesInput=document.getElementById("companies").value;
-  let keywordInput=document.getElementById("keywords").value;
+function buildURL(){
+  let companies=document.getElementById("companies").value;
   let mode=document.getElementById("mode").value;
-
-  let names=uniq(companiesInput.split(SPLIT_REGEX));
-  let expanded=[];
-  names.forEach(n=>{
-    expanded.push(n);
-    expanded.push(stripSuffix(n));
-  });
-  expanded=uniq(expanded);
-
-  document.getElementById("expanded").value=expanded.join("\n");
+  let names=uniq(companies.split(SPLIT_REGEX));
 
   function values(list,type){
     return list.map(n=>`(text%3A${encodeCompany(n)}%2CselectionType%3A${type})`).join("%2C");
@@ -234,42 +171,135 @@ function build(){
 
   let filters="";
   if(mode==="PAST"){
-    filters=`(type%3APAST_COMPANY%2Cvalues%3AList(${values(expanded,"INCLUDED")}))%2C(type%3ACURRENT_COMPANY%2Cvalues%3AList(${values(expanded,"EXCLUDED")}))`;
+    filters=`(type%3APAST_COMPANY%2Cvalues%3AList(${values(names,"INCLUDED")}))%2C(type%3ACURRENT_COMPANY%2Cvalues%3AList(${values(names,"EXCLUDED")}))`;
   }
   else if(mode==="CURRENT"){
-    filters=`(type%3ACURRENT_COMPANY%2Cvalues%3AList(${values(expanded,"INCLUDED")}))`;
+    filters=`(type%3ACURRENT_COMPANY%2Cvalues%3AList(${values(names,"INCLUDED")}))`;
   }
   else{
-    filters=`(type%3APAST_COMPANY%2Cvalues%3AList(${values(expanded,"INCLUDED")}))%2C(type%3ACURRENT_COMPANY%2Cvalues%3AList(${values(expanded,"INCLUDED")}))`;
+    filters=`(type%3APAST_COMPANY%2Cvalues%3AList(${values(names,"INCLUDED")}))%2C(type%3ACURRENT_COMPANY%2Cvalues%3AList(${values(names,"INCLUDED")}))`;
   }
 
-  let keywordBlock="";
-  let formattedKeywords=formatKeywords(keywordInput);
-  document.getElementById("expandedKeywords").value=formattedKeywords;
+  let keywordString="";
+  keywordGroups.forEach(group=>{
+    let val=document.getElementById(group).value;
+    let formatted=formatGroup(val);
+    if(formatted){
+      if(keywordString===""){
+        keywordString=formatted;
+      }else{
+        keywordString=`(${keywordString}) AND (${formatted})`;
+      }
+    }
+  });
 
-  if(formattedKeywords){
-    keywordBlock=`%2Ckeywords%3A${encodeKeywords(formattedKeywords)}`;
+  let keywordBlock="";
+  if(keywordString){
+    keywordBlock=`%2Ckeywords%3A${encodeKeywords(keywordString)}`;
   }
 
   let query=`(spellCorrectionEnabled%3Atrue%2CrecentSearchParam%3A(doLogHistory%3Atrue)%2Cfilters%3AList(${filters})${keywordBlock})`;
 
-  let url=`https://www.linkedin.com/sales/search/people?query=${query}&viewAllFilters=true`;
+  generatedURL=`https://www.linkedin.com/sales/search/people?query=${query}&viewAllFilters=true`;
 
-  document.getElementById("output").value=url;
-  document.getElementById("status").innerHTML="<span class='good'>URL Generated Successfully</span>";
+  document.getElementById("urlFooter").innerText=generatedURL;
+
+  saveHistory();
 }
 
 function copyURL(){
-  navigator.clipboard.writeText(document.getElementById("output").value);
+  if(generatedURL)
+    navigator.clipboard.writeText(generatedURL);
 }
 
 function openURL(){
-  window.open(document.getElementById("output").value,"_blank");
+  if(generatedURL)
+    window.open(generatedURL,"_blank");
 }
 
 function toggleTheme(){
   document.body.classList.toggle("light");
 }
+
+function addKeywordGroup(){
+  if(keywordGroups.length>=MAX_GROUPS) return;
+  let id="kw"+Date.now();
+  keywordGroups.push(id);
+
+  let div=document.createElement("div");
+  div.className="group";
+  div.innerHTML=`<label><b>Keyword Group (${keywordGroups.length})</b></label>
+  <textarea id="${id}"></textarea>`;
+  document.getElementById("keywordContainer").appendChild(div);
+  document.getElementById(id).addEventListener("input",buildURL);
+}
+
+function saveHistory(){
+  if(!generatedURL) return;
+  let history=JSON.parse(localStorage.getItem("tayaHistory")||"[]");
+
+  history.unshift({
+    companies:document.getElementById("companies").value,
+    mode:document.getElementById("mode").value,
+    keywords:keywordGroups.map(id=>document.getElementById(id).value),
+    url:generatedURL,
+    time:new Date().toLocaleString()
+  });
+
+  history=history.slice(0,MAX_HISTORY);
+  localStorage.setItem("tayaHistory",JSON.stringify(history));
+  renderHistory();
+}
+
+function renderHistory(){
+  let history=JSON.parse(localStorage.getItem("tayaHistory")||"[]");
+  let container=document.getElementById("historyList");
+  container.innerHTML="";
+
+  history.forEach((item,index)=>{
+    let div=document.createElement("div");
+    div.className="history-item";
+    div.innerHTML=`<b>${item.time}</b><br>${item.companies}<div class="history-buttons">
+    <button onclick="loadHistory(${index})">Load</button>
+    <button onclick="deleteHistory(${index})">Delete</button>
+    </div>`;
+    container.appendChild(div);
+  });
+}
+
+function loadHistory(index){
+  let history=JSON.parse(localStorage.getItem("tayaHistory")||"[]");
+  let item=history[index];
+  document.getElementById("companies").value=item.companies;
+  document.getElementById("mode").value=item.mode;
+
+  document.getElementById("keywordContainer").innerHTML="";
+  keywordGroups=[];
+  item.keywords.forEach(k=>{
+    addKeywordGroup();
+    document.getElementById(keywordGroups[keywordGroups.length-1]).value=k;
+  });
+
+  buildURL();
+}
+
+function deleteHistory(index){
+  let history=JSON.parse(localStorage.getItem("tayaHistory")||"[]");
+  history.splice(index,1);
+  localStorage.setItem("tayaHistory",JSON.stringify(history));
+  renderHistory();
+}
+
+function clearHistory(){
+  localStorage.removeItem("tayaHistory");
+  renderHistory();
+}
+
+document.getElementById("companies").addEventListener("input",buildURL);
+document.getElementById("mode").addEventListener("change",buildURL);
+
+addKeywordGroup();
+renderHistory();
 
 </script>
 </body>

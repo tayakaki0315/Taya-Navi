@@ -12,7 +12,8 @@
   --card:#171a23;
   --text:#eaeef3;
   --border:#2a2f3c;
-  --primary:#2f5eff;
+  --blue:#2f5eff;
+  --green:#1bb76e;
 }
 .light{
   --bg:#f4f6fb;
@@ -26,7 +27,6 @@ body{
   color:var(--text);
   margin:0;
   padding:30px;
-  transition:.25s;
 }
 .container{max-width:1000px;margin:auto}
 .card{
@@ -35,7 +35,7 @@ body{
   border-radius:14px;
   margin-bottom:20px;
 }
-textarea,input,select{
+textarea,select{
   width:100%;
   background:var(--bg);
   color:var(--text);
@@ -43,43 +43,41 @@ textarea,input,select{
   border-radius:10px;
   padding:10px;
   margin-top:6px;
-  font-size:14px;
 }
 button{
-  padding:6px 10px;
+  padding:6px 12px;
   border-radius:8px;
   border:1px solid var(--border);
-  background:transparent;
-  color:var(--text);
   cursor:pointer;
+  margin-right:8px;
 }
-.primary{
-  background:var(--primary);
-  border:none;
-  color:white;
+.generate{background:var(--blue);color:white;border:none;}
+.open{background:var(--green);color:white;border:none;}
+.copy{background:transparent;color:var(--text);}
+.group{
+  margin-bottom:15px;
+  position:relative;
 }
-.topbar{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:20px;
+.remove-btn{
+  position:absolute;
+  right:0;
+  top:0;
+  font-size:12px;
+  cursor:pointer;
+  opacity:.6;
 }
-.group{margin-bottom:15px;}
 .footer{
   margin-top:40px;
-  font-size:12px;
+  font-size:11px;
   opacity:.35;
   word-break:break-all;
 }
 .history-item{
   font-size:12px;
-  margin-bottom:6px;
-  padding:6px;
   border:1px solid var(--border);
+  padding:6px;
   border-radius:6px;
-}
-.history-buttons{
-  margin-top:4px;
+  margin-bottom:6px;
 }
 .toggle{cursor:pointer;opacity:.6;}
 </style>
@@ -88,8 +86,8 @@ button{
 <body>
 <div class="container">
 
-<div class="topbar">
-<h2>Taya Navi v3.1</h2>
+<div style="display:flex;justify-content:space-between;">
+<h2>Taya Navi v3.2</h2>
 <div class="toggle" onclick="toggleTheme()">🌙 / ☀</div>
 </div>
 
@@ -111,9 +109,17 @@ button{
 
 <br><br>
 
-<button class="primary" onclick="copyURL()">Copy URL</button>
-<button onclick="openURL()">Open URL</button>
+<button class="generate" onclick="generate()">Generate</button>
+<button class="open" onclick="openURL()">Open</button>
+<button class="copy" onclick="copyURL()">Copy</button>
+</div>
 
+<div class="card">
+<h3>Expanded Companies</h3>
+<textarea id="expandedCompanies" readonly></textarea>
+
+<h3>Expanded Keywords</h3>
+<textarea id="expandedKeywords" readonly></textarea>
 </div>
 
 <div class="card">
@@ -160,10 +166,13 @@ function formatGroup(raw){
   return formatted.join(" OR ");
 }
 
-function buildURL(){
+function generate(){
+
   let companies=document.getElementById("companies").value;
   let mode=document.getElementById("mode").value;
   let names=uniq(companies.split(SPLIT_REGEX));
+
+  document.getElementById("expandedCompanies").value=names.join("\n");
 
   function values(list,type){
     return list.map(n=>`(text%3A${encodeCompany(n)}%2CselectionType%3A${type})`).join("%2C");
@@ -181,8 +190,8 @@ function buildURL(){
   }
 
   let keywordString="";
-  keywordGroups.forEach(group=>{
-    let val=document.getElementById(group).value;
+  keywordGroups.forEach(id=>{
+    let val=document.getElementById(id).value;
     let formatted=formatGroup(val);
     if(formatted){
       if(keywordString===""){
@@ -192,6 +201,8 @@ function buildURL(){
       }
     }
   });
+
+  document.getElementById("expandedKeywords").value=keywordString;
 
   let keywordBlock="";
   if(keywordString){
@@ -217,25 +228,38 @@ function openURL(){
     window.open(generatedURL,"_blank");
 }
 
-function toggleTheme(){
-  document.body.classList.toggle("light");
-}
-
 function addKeywordGroup(){
   if(keywordGroups.length>=MAX_GROUPS) return;
+
   let id="kw"+Date.now();
   keywordGroups.push(id);
 
   let div=document.createElement("div");
   div.className="group";
-  div.innerHTML=`<label><b>Keyword Group (${keywordGroups.length})</b></label>
-  <textarea id="${id}"></textarea>`;
+  div.innerHTML=`
+  <label><b>Keyword Group (${keywordGroups.length})</b></label>
+  <span class="remove-btn" onclick="removeGroup('${id}')">Remove</span>
+  <textarea id="${id}"></textarea>
+  `;
   document.getElementById("keywordContainer").appendChild(div);
-  document.getElementById(id).addEventListener("input",buildURL);
+}
+
+function removeGroup(id){
+  keywordGroups=keywordGroups.filter(g=>g!==id);
+  document.getElementById(id).parentElement.remove();
+  renumberGroups();
+}
+
+function renumberGroups(){
+  let groups=document.querySelectorAll(".group label b");
+  groups.forEach((el,index)=>{
+    el.innerText=`Keyword Group (${index+1})`;
+  });
 }
 
 function saveHistory(){
   if(!generatedURL) return;
+
   let history=JSON.parse(localStorage.getItem("tayaHistory")||"[]");
 
   history.unshift({
@@ -259,10 +283,9 @@ function renderHistory(){
   history.forEach((item,index)=>{
     let div=document.createElement("div");
     div.className="history-item";
-    div.innerHTML=`<b>${item.time}</b><br>${item.companies}<div class="history-buttons">
+    div.innerHTML=`<b>${item.time}</b><br>${item.companies}<br>
     <button onclick="loadHistory(${index})">Load</button>
-    <button onclick="deleteHistory(${index})">Delete</button>
-    </div>`;
+    <button onclick="deleteHistory(${index})">Delete</button>`;
     container.appendChild(div);
   });
 }
@@ -270,17 +293,20 @@ function renderHistory(){
 function loadHistory(index){
   let history=JSON.parse(localStorage.getItem("tayaHistory")||"[]");
   let item=history[index];
+
   document.getElementById("companies").value=item.companies;
   document.getElementById("mode").value=item.mode;
 
   document.getElementById("keywordContainer").innerHTML="";
   keywordGroups=[];
+
   item.keywords.forEach(k=>{
     addKeywordGroup();
     document.getElementById(keywordGroups[keywordGroups.length-1]).value=k;
   });
 
-  buildURL();
+  generatedURL=item.url;
+  document.getElementById("urlFooter").innerText=generatedURL;
 }
 
 function deleteHistory(index){
@@ -295,8 +321,9 @@ function clearHistory(){
   renderHistory();
 }
 
-document.getElementById("companies").addEventListener("input",buildURL);
-document.getElementById("mode").addEventListener("change",buildURL);
+function toggleTheme(){
+  document.body.classList.toggle("light");
+}
 
 addKeywordGroup();
 renderHistory();

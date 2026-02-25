@@ -159,7 +159,7 @@ hr{margin:18px 0;opacity:.2}
 
 <script>
 
-const SPLIT_REGEX=/[\r\n,，、。:：・\/\\;；]+/g;
+const SPLIT_REGEX=/[\r\n,，、。:：・\/\\;；Ø]+/g;
 const MAX_GROUPS=4;
 const MAX_HISTORY=10;
 const LS_KEY="tayaHistory_v34";
@@ -187,9 +187,9 @@ const LANG = {
   ja:{
     company:"会社名",
     mode:"モード",
-    past:"過去のみ（現在を除外）",
-    current:"現在のみ",
-    both:"現在＋過去",
+    past:"元職のみ（現職を除外）",
+    current:"現職のみ",
+    both:"現職＋元職",
     add:"+ キーワードグループ追加 (AND)",
     generate:"生成",
     open:"開く",

@@ -426,6 +426,33 @@ addKeywordGroup("");
 renderHistory();
 applyLanguage();
 
+function openGeminiFormatter(){
+  const companies = document.getElementById("companies").value.trim();
+  if(!companies) return alert("Please enter company names first.");
+
+  const prompt = `Standardize the following company names.
+
+For each company, provide:
+1. Official Japanese name
+2. Official English name
+
+Only return the company names.
+Do NOT include legal suffixes such as Co., Ltd., Inc., Ltd., Corporation, 株式会社, 有限公司, etc.
+Do NOT add explanations.
+Do NOT add numbering.
+Return in this format:
+
+Japanese Name | English Name
+
+Companies:
+${companies}
+`;
+
+  navigator.clipboard.writeText(prompt);
+  window.open("https://gemini.google.com/", "_blank");
+}
+
+
 </script>
 </body>
 </html>
